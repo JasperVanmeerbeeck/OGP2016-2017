@@ -427,6 +427,7 @@ public class Ship {
 			throw new IllegalArgumentException();
 		setxPosition(getPositionAfterMoving(duration)[0]);
 		setyPosition(getPositionAfterMoving(duration)[1]);
+		
 	}
 	
 	/**
@@ -474,22 +475,66 @@ public class Ship {
 	private double xVelocity;
 	private double yVelocity;
 	
+	
 	// PART 2
+	
 	private double getTimeToCollision(Ship other) throws NullPointerException{
-		if (other == null)
-			throw new NullPointerException();
 		if (!overlap())// functie die Amber heeft gedefinieerd
 			return Double.POSITIVE_INFINITY;
-		double [] deltaVelocity = {other.getxVelocity()-this.getxVelocity(),
-									other.getyVelocity()-this.getyVelocity()};
+		if (other == null)
+			throw new NullPointerException();
+		if (getD(other) <= 0)
+			return Double.POSITIVE_INFINITY;
+		else
+			return -(getDeltaDistanceVelocity(other)+Math.sqrt(getD(other)))/getDeltaPowVelocity(other);
+			// is d altijd positief?
+	}
+	private double [] getDeltaDistance(Ship other){
 		double [] deltaDistance = {other.getxPosition()-this.getxPosition(),
-									other.getyPosition()-this.getyPosition()};
-		double deltaDistanceDistance = Math.pow(deltaDistance[0],2)+
-										Math.pow(deltaDistance[1],2);
-		double deltaVelocityVelocity = Math.pow(deltaVelocity[0], 2)+
-										Math.pow(deltaVelocity[1], 2);
-		double deltaDistanceVelocity = (deltaVelocity[0]*deltaDistance[0])+
-				 						(deltaVelocity[1]*deltaDistance[1]);
-		double
+				other.getyPosition()-this.getyPosition()};
+		return deltaDistance;
+	}
+	
+	private double [] getDeltaVelocity(Ship other){
+		double [] deltaVelocity = {other.getxVelocity()-this.getxVelocity(),
+				other.getyVelocity()-this.getyVelocity()};
+		return deltaVelocity;
+	}
+	
+	private double getDeltaPowDistance(Ship other){
+		double deltaPowDistance = Math.pow(getDeltaDistance(other)[0],2)+
+					Math.pow(getDeltaDistance(other)[1],2);
+		return deltaPowDistance;
+	}
+	
+	private double getDeltaPowVelocity(Ship other){
+		double deltaPowVelocity = Math.pow(getDeltaVelocity(other)[0], 2)+
+					Math.pow(getDeltaVelocity(other)[1], 2);
+		return deltaPowVelocity;
+	}
+	
+	private double getDeltaDistanceVelocity(Ship other){
+		double deltaDistanceVelocity = (getDeltaVelocity(other)[0]*getDeltaDistance(other)[0])+
+						(getDeltaVelocity(other)[1]*getDeltaDistance(other)[1]);
+		return deltaDistanceVelocity;
+	}
+	
+	private double getD(Ship other){
+		double d = Math.pow(getDeltaDistanceVelocity(other),2)-
+					(getDeltaPowVelocity(other))*(getDeltaPowDistance(other)-getDistanceBetween());
+					// getDistanceBetween heeft Amber uitgewerkt?
+		return d;
+	}
+	
+	private double [] getCollisionPosition(Ship other){
+		double time = this.getTimeToCollision(other);
+		double [] collisionPoint = {this.getPositionAfterMoving(time)[0]+
+									this.getRadius()*getDeltaDistance(other)[0]/getD(other),
+									this.getPositionAfterMoving(time)[1]+
+									this.getRadius()*getDeltaDistance(other)[1]/getD(other)};
+		// positie van raken = 	positie van ship na de verplaatsing tot botsing+
+		//						(verschil in nulpunten qua x-en y richting*
+		// 						straal van eerste schip/totale afstand twee centra
+		return collisionPoint;
 	}
 }
